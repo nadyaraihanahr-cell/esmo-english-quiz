@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ESMO 4 — English Level 2 Practice</title>
+<style>
+  :root{--bg:#fff8ec;--card:#fff;--ink:#1f2937;--soft:#6b7280;--brand:#0e7490;--ok:#15803d;--no:#b91c1c;--line:#e5e7eb}
+  *{box-sizing:border-box}
+  body{margin:0;font:18px/1.55 system-ui,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+  .wrap{max-width:760px;margin:0 auto;padding:18px}
+  header{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .badge{background:var(--brand);color:#fff;border-radius:999px;padding:4px 12px;font-size:14px;font-weight:700}
+  h1{font-size:clamp(20px,4vw,28px);margin:10px 0 4px}
+  .sub{color:var(--soft);font-size:15px;margin:0 0 14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,.04);margin-bottom:14px}
+  .bar{height:10px;background:var(--line);border-radius:999px;overflow:hidden;margin:6px 0 16px}
+  .bar>i{display:block;height:100%;background:var(--brand);width:0;transition:width .3s}
+  .meta{display:flex;justify-content:space-between;font-size:14px;color:var(--soft)}
+  .q{font-size:19px;font-weight:600;margin:14px 0 16px}
+  .passage{background:#ecfeff;border-left:4px solid var(--brand);border-radius:10px;padding:12px 14px;margin:12px 0;font-size:17px}
+  .opts{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+  .opt{width:100%;text-align:left;font:inherit;padding:14px 16px;border:2px solid var(--line);background:#fff;border-radius:12px;cursor:pointer;transition:.15s}
+  .opt:hover:not(:disabled){border-color:var(--brand);background:#f0fdff}
+  .opt:disabled{cursor:default}
+  .opt.ok{border-color:var(--ok);background:#f0fdf4}
+  .opt.no{border-color:var(--no);background:#fef2f2}
+  .row{display:flex;gap:10px;justify-content:space-between;align-items:center;margin-top:18px;flex-wrap:wrap}
+  button.primary{font:inherit;font-weight:700;background:var(--brand);color:#fff;border:0;border-radius:12px;padding:12px 22px;cursor:pointer}
+  button.ghost{font:inherit;background:transparent;border:2px solid var(--line);border-radius:12px;padding:10px 16px;cursor:pointer}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .why{margin-top:14px;font-size:16px;color:var(--soft);display:none}
+  .why.show{display:block}
+  .score{font-size:44px;font-weight:800;margin:6px 0}
+  .rev{border-top:1px solid var(--line);padding:10px 0;font-size:15px}
+  .tick{color:var(--ok)} .cross{color:var(--no)}
+  .hide{display:none!important}
+  .focus{background:#fef3c7;border:1px solid #fcd34d;border-radius:12px;padding:10px 14px;font-size:15px;margin-bottom:14px}
+  .trow{display:grid;grid-template-columns:1fr 90px 46px;gap:10px;align-items:center;font-size:14px;margin:6px 0}
+  .trow .tb{height:8px;background:var(--line);border-radius:999px;overflow:hidden}
+  .trow .tb>i{display:block;height:100%;background:var(--ok)}
+  .trow .tb>i.low{background:#f59e0b}
+  .trow .tb>i.bad{background:var(--no)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="badge">ESMO 4</span>
+    <span class="badge" style="background:#f59e0b">English · Level 2</span>
+  </header>
+  <h1>English Practice — Level 2</h1>
+  <p class="sub">Grade 3 &amp; 4 · advanced reading &amp; inference · simple present · prepositions · telling time</p>
+
+  <section id="start" class="card">
+    <div id="focus"></div>
+    <p><b id="count">Loading…</b></p>
+    <p class="sub" style="margin:0 0 16px">Tap the best answer. Use 🔊 to hear the question.</p>
+    <div class="row"><button class="primary" id="go">Start practice →</button></div>
+  </section>
+
+  <section id="history" class="card">
+    <p style="margin:0 0 10px"><b>Your progress so far</b> <span class="sub" id="sess" style="font-size:13px"></span></p>
+    <div id="bars"></div>
+    <div class="row"><button class="ghost" id="reset">Reset history</button></div>
+  </section>
+
+  <section id="quiz" class="card hide">
+    <div class="meta"><span id="prog">Question 1</span><span id="clock">⏱ 30s</span></div>
+    <div class="bar"><i id="fill"></i></div>
+    <div id="passBox"></div>
+    <p class="q" id="q"></p>
+    <ul class="opts" id="opts"></ul>
+    <p class="why" id="why"></p>
+    <div class="row">
+      <button class="ghost" id="listen">🔊 Listen</button>
+      <button class="primary" id="next" disabled>Next →</button>
+    </div>
+  </section>
+
+  <section id="done" class="card hide">
+    <div id="result"></div>
+    <div class="row">
+      <button class="ghost" id="again">New session</button>
+      <button class="primary" id="gh">Check answers</button>
+    </div>
+    <div id="review" style="margin-top:14px"></div>
+  </section>
+</div>
+
+<script>
+const R="advanced reading & inference", S="simple present", P="preposition", T="telling time";
+const TOPICS=[R,S,P,T];
+const SHORT={ [R]:"reading", [S]:"simple present", [P]:"preposition", [T]:"telling time" };
+
+const BANK=[
+/* ── advanced reading & inference ── */
+{t:R,p:"Rina put bread, cheese, and a bottle of water into her bag. Then she took her hat and her mother's umbrella. Outside, the sky was grey and the wind was strong.",q:"What will Rina most likely do next?",o:["Go to the beach to swim","Walk to school in the rain","Sleep in her bedroom","Wash her mother's umbrella"],a:1,w:"Grey sky, strong wind and an umbrella show she is going out in the rain."},
+{t:R,p:"The library was very quiet. Mr. Ade walked between the tables, looked at the small pieces of paper on the floor, and sighed. He put a sign on the wall.",q:"What probably did the sign say?",o:["Please keep quiet and put rubbish in the bin","All books are free today","The library is closed","New computers are available"],a:0,w:"He sighed at the litter, so the sign is about keeping the library clean."},
+{t:R,p:"Dimas checked the cookie jar three times. It was empty. His little sister had flour on her cheeks and a happy smile. 'Did you eat them?' he asked. 'I only ate one,' she said.",q:"What can we infer about the sister?",o:["She does not like cookies","She probably ate more than one","She was baking all morning","She had never seen the jar"],a:1,w:"An empty jar plus 'I only ate one' suggests she ate more than one."},
+{t:R,p:"Thousands of people come to this beach every year. Now no one comes. Small fish swim between the plastic bottles, and the sand looks grey.",q:"What is the passage mainly about?",o:["A busy holiday beach","How the beach changed after becoming polluted","A fisherman and the fish he caught","Why people like to swim"],a:1,w:"The contrast between 'every year' and 'now' plus plastic bottles shows pollution."},
+{t:R,p:"Dewi's alarm rang at five o'clock. She put on her shoes, filled her water bottle, and opened the door. Her mother said, 'Don't forget your towel.'",q:"Where is Dewi most likely going?",o:["To the library","To go swimming","To a birthday party","To the doctor"],a:1,w:"Early start, water bottle and towel point to swimming."},
+{t:R,p:"Aldi's plant had yellow leaves. The soil in the pot was dry and cracked. The plant stood near the window.",q:"What should Aldi do?",o:["Move the plant into a dark room","Give the plant water","Cut all the leaves","Hide the plant in a cupboard"],a:1,w:"Dry, cracked soil and yellow leaves mean the plant needs water."},
+{t:R,p:"Ben looked at his empty bowl, then at the dog. The dog had milk on its nose and was wagging its tail.",q:"What probably happened?",o:["The dog ate Ben's food","Ben ate the dog's food","The dog was sick","Ben washed the bowl"],a:0,w:"The empty bowl plus milk on the dog's nose shows the dog ate it."},
+{t:R,p:"Mother came home with a big box and said, 'Don't look yet!' There was coloured paper and a ribbon on the table.",q:"What is most likely happening?",o:["Mother is cleaning the house","Mother is preparing a surprise present","Mother is going to the market","Mother lost the ribbon"],a:1,w:"A box, paper, ribbon and 'Don't look yet' show a surprise present."},
+{t:R,p:"A yellow sign stood in the middle of the corridor: 'WET FLOOR'. Sari slowed down and held the wall.",q:"Why did Sari hold the wall?",o:["She was tired","The floor was slippery","She wanted to clean the wall","The corridor was dark"],a:1,w:"'Wet floor' means the floor is slippery."},
+{t:R,p:"Every morning Aun stands in front of the class and leads the singing. He knows every song and never looks at the book.",q:"What can we say about Aun?",o:["He is shy in front of the class","He is confident and knows the songs well","He does not like music","He is new in the class"],a:1,w:"Leading the singing from memory shows confidence and good knowledge."},
+{t:R,p:"The bus to the zoo leaves at 8:00. It is 7:50 now and Doni is still at home. The bus station is 20 minutes from his house.",q:"What will probably happen?",o:["Doni will arrive early","Doni will miss the bus","The bus will wait for Doni","Doni will walk to the zoo"],a:1,w:"He needs 20 minutes but has only 10, so he will miss the bus."},
+{t:R,p:"The class was silent. Everyone looked at the door. Mrs. Lina walked in carrying a chicken in her arms.",q:"How did the class probably feel?",o:["Bored","Surprised","Sleepy","Angry"],a:1,w:"A silent class plus a chicken at the door is an unexpected, surprising event."},
+{t:R,p:"Old newspapers, bottles, and cans can be used again. We can make bags from old cloth and toys from empty boxes. Throwing them away is a waste.",q:"What is the best title for the passage?",o:["How to Buy New Toys","Why We Should Not Reuse Things","Making New Things from Old Things","A Trip to the Supermarket"],a:2,w:"The whole passage is about reusing old things to make new ones."},
+{t:R,p:"Rudi practised the piano for two hours every day for a month. On concert day, he played without a single mistake.",q:"What lesson can we learn?",o:["Pianos are expensive","Practice brings good results","Concerts are always easy","Rudi does not like music"],a:1,w:"Daily practice led to a perfect performance."},
+{t:R,p:"The cat sat by the window without moving. Its eyes followed the birds outside, and its tail moved slowly from side to side.",q:"What is the cat probably doing?",o:["Sleeping deeply","Watching the birds","Eating its food","Playing with its tail"],a:1,w:"Its eyes followed the birds; the moving tail shows it is alert and watching."},
+{t:R,p:"Nia came home with muddy shoes and wet hair. She was smiling from ear to ear.",q:"What can we conclude?",o:["Nia was unhappy","Nia enjoyed playing in the rain","Nia fell into the mud and cried","Nia was going to school"],a:1,w:"Wet and muddy but smiling broadly means she enjoyed herself."},
+{t:R,p:"The book cost fifty thousand rupiah. The boy looked in his pocket and found thirty thousand. He put the book back on the shelf.",q:"Why did the boy put the book back?",o:["He did not like the book","He did not have enough money","The book was too heavy","The shop was closed"],a:1,w:"He had less money than the price."},
+{t:R,p:"Suddenly the lights went out. Father felt his way to the kitchen and came back with a candle and matches.",q:"What happened in the house?",o:["The electricity was cut off","Someone was cooking","The house was on fire","Father was going to bed"],a:0,w:"Lights out plus candle and matches means the electricity went off."},
+{t:R,p:"Anton feeds the fish, cleans the tank, and changes the water every week without being asked.",q:"What kind of boy is Anton?",o:["Lazy","Responsible","Afraid of fish","Forgetful"],a:1,w:"Doing his duties without being asked shows responsibility."},
+{t:R,p:"Bees fly from flower to flower all day. They take sweet juice from the flowers and carry it home to their hive.",q:"What do bees make from the sweet juice?",o:["Milk","Honey","Bread","Jam"],a:1,w:"Bees turn flower juice into honey in their hive."},
+
+/* ── simple present ── */
+{t:S,q:"My sister ___ to school by bicycle every day.",o:["go","goes","going","went"],a:1,w:"He/she/it takes -s: she goes."},
+{t:S,q:"They ___ football in the park on Sundays.",o:["plays","playing","play","is play"],a:2,w:"With 'they' use the base verb: play."},
+{t:S,q:"Which sentence is correct?",o:["Budi don't like durian.","Budi doesn't likes durian.","Budi doesn't like durian.","Budi don't likes durian."],a:2,w:"Negative third person: doesn't + base verb."},
+{t:S,q:"___ your father cook dinner every night?",o:["Do","Does","Is","Are"],a:1,w:"Questions with he/she/it use Does + base verb."},
+{t:S,q:"The sun ___ in the east.",o:["rise","rises","rising","rose"],a:1,w:"A general truth in the simple present: the sun rises."},
+{t:S,q:"My friends and I ___ English every Tuesday.",o:["studies","studying","study","studys"],a:2,w:"A plural subject takes the base verb: study."},
+{t:S,q:"My brother ___ his teeth twice a day.",o:["brush","brushes","brushing","brushs"],a:1,w:"Verbs ending in -sh add -es: brushes."},
+{t:S,q:"The train ___ at seven o'clock every morning.",o:["leave","leaves","leaving","left"],a:1,w:"Third person singular with a timetable: leaves."},
+{t:S,q:"Water ___ at 100 degrees Celsius.",o:["boil","boils","boiling","boiled"],a:1,w:"General fact, third person: boils."},
+{t:S,q:"Rina ___ eat meat. She is a vegetarian.",o:["don't","doesn't","isn't","aren't"],a:1,w:"Third person singular negative: doesn't."},
+{t:S,q:"___ they live in Bandung?",o:["Does","Do","Is","Are"],a:1,w:"Questions with 'they' use Do."},
+{t:S,q:"What is the correct he/she/it form of 'watch'?",o:["watchs","watches","watchies","watching"],a:1,w:"Verbs ending in -ch add -es: watches."},
+{t:S,q:"My mother and my aunt ___ nasi goreng every Sunday.",o:["cooks","cooking","cook","is cook"],a:2,w:"Two people = plural subject, so the base verb: cook."},
+{t:S,q:"Nobody ___ the answer to this question.",o:["know","knows","knowing","known"],a:1,w:"'Nobody' is singular, so it takes -s: knows."},
+{t:S,q:"Choose the correct position of 'always'.",o:["She always comes early.","She comes always early.","Always she comes early to.","She come always early."],a:0,w:"Adverbs of frequency go before the main verb: She always comes early."},
+{t:S,q:"Mr. Yudi ___ English at our school.",o:["teach","teaches","teaching","teached"],a:1,w:"Verbs ending in -ch add -es: teaches."},
+{t:S,q:"Cats ___ milk.",o:["likes","like","liking","is like"],a:1,w:"Plural subject: like."},
+{t:S,q:"It ___ a lot in January.",o:["rain","rains","raining","rained"],a:1,w:"'It' takes -s: rains."},
+{t:S,q:"Mrs. Ani ___ the dishes every evening.",o:["wash","washs","watches","washes"],a:3,w:"Verbs ending in -sh add -es: washes."},
+{t:S,q:"This bag ___ one hundred thousand rupiah.",o:["cost","costs","costing","costed"],a:1,w:"Third person singular: costs."},
+
+/* ── preposition ── */
+{t:P,q:"The cat is hiding ___ the table.",o:["under","on","in","above"],a:0,w:"Beneath the table = under."},
+{t:P,q:"We have lunch ___ twelve o'clock.",o:["in","at","on","of"],a:1,w:"Clock times take 'at'."},
+{t:P,q:"Put your name ___ the top of the page.",o:["at","in","under","to"],a:0,w:"We say 'at the top of' a page."},
+{t:P,q:"Santi was born ___ October.",o:["on","at","in","to"],a:2,w:"Months take 'in': in October."},
+{t:P,q:"The ball rolled ___ the box and stopped inside.",o:["into","out of","under","over"],a:0,w:"Movement to the inside = into."},
+{t:P,q:"He waits ___ the bus stop every morning.",o:["in","at","on","to"],a:1,w:"We wait 'at' a bus stop."},
+{t:P,q:"We have a flag ceremony ___ Monday.",o:["in","at","on","of"],a:2,w:"Days take 'on': on Monday."},
+{t:P,q:"My father drinks coffee ___ the morning.",o:["on","in","at","to"],a:1,w:"Parts of the day take 'in': in the morning."},
+{t:P,q:"The picture is hanging ___ the wall.",o:["in","on","at","under"],a:1,w:"On a surface such as a wall: on."},
+{t:P,q:"Nina is standing ___ Rina and Tika.",o:["among","between","behind","above"],a:1,w:"Two people = between. 'Among' is for more than two."},
+{t:P,q:"The bank is ___ the post office. They face each other.",o:["opposite","inside","under","between"],a:0,w:"Facing each other across a road = opposite (across from)."},
+{t:P,q:"We swim ___ the river every Sunday.",o:["on","in","at","over"],a:1,w:"Inside water = in the river."},
+{t:P,q:"My birthday is ___ 5 May.",o:["in","at","on","from"],a:2,w:"Dates take 'on': on 5 May."},
+{t:P,q:"The cat jumped ___ the fence and ran away.",o:["over","in","at","between"],a:0,w:"From one side to the other = over."},
+{t:P,q:"There is some water ___ the glass.",o:["on","in","at","over"],a:1,w:"Inside a container = in."},
+{t:P,q:"The teacher is standing ___ the class.",o:["in front of","under","between","next"],a:0,w:"Facing the class = in front of."},
+{t:P,q:"Doni sits ___ Budi, and they share one desk.",o:["next to","under","above","among"],a:0,w:"Side by side = next to."},
+{t:P,q:"The bird flew ___ the trees and disappeared.",o:["over","under","at","on"],a:0,w:"Above and across = over."},
+{t:P,q:"We must be quiet ___ the library.",o:["on","in","at","to"],a:1,w:"Inside a building = in the library."},
+{t:P,q:"The children are hiding ___ the big tree.",o:["behind","in","at","on"],a:0,w:"At the back of the tree = behind."},
+
+/* ── telling time ── */
+{t:T,q:"It is 7:15. How do we say it?",o:["Seven fifteen","Quarter to seven","Half past seven","Seven fifty"],a:0,w:"7:15 = seven fifteen (a quarter past seven)."},
+{t:T,q:"The clock shows 3:45. Which is correct?",o:["A quarter past three","A quarter to four","Half past three","Three forty"],a:1,w:"45 minutes = 15 minutes before the next hour: a quarter to four."},
+{t:T,q:"It is 9:30. How do we say it?",o:["Half past nine","Half to nine","Nine thirty-five","A quarter past nine"],a:0,w:"30 minutes after the hour = half past nine."},
+{t:T,q:"The lesson starts at 8:00 and lasts 45 minutes. When does it end?",o:["8:15","8:45","8:30","9:00"],a:1,w:"8:00 + 45 minutes = 8:45."},
+{t:T,q:"Ani leaves home at 6:40 and walks for 20 minutes. What time does she arrive?",o:["6:20","6:60","7:00","7:20"],a:2,w:"6:40 + 20 minutes = 7:00."},
+{t:T,q:"It is 11:55. Which is the best sentence?",o:["It is five to twelve.","It is five past twelve.","It is eleven and a half.","It is a quarter to eleven."],a:0,w:"Five minutes before twelve = five to twelve."},
+{t:T,q:"How do we say 5:05?",o:["Five five","Five past five","Five to five","Five past zero"],a:1,w:"5 minutes after the hour = five past five."},
+{t:T,q:"How do we say 10:50?",o:["Ten to eleven","Ten past ten","Fifty past ten","Eleven to ten"],a:0,w:"10 minutes before eleven = ten to eleven."},
+{t:T,q:"'A quarter past six' is ___.",o:["6:15","6:45","6:30","5:15"],a:0,w:"A quarter past = 15 minutes after: 6:15."},
+{t:T,q:"'Half past four' is ___.",o:["4:15","4:30","4:45","3:30"],a:1,w:"Half past = 30 minutes after: 4:30."},
+{t:T,q:"'Ten to eight' is ___.",o:["8:10","7:50","8:50","7:10"],a:1,w:"Ten minutes before eight = 7:50."},
+{t:T,q:"The film starts at 7:30 and ends at 9:00. How long is the film?",o:["1 hour","1 hour 30 minutes","2 hours","2 hours 30 minutes"],a:1,w:"7:30 to 9:00 is 90 minutes."},
+{t:T,q:"It is 12:00 in the middle of the day. We can also say ___.",o:["midnight","noon","twelve to one","half past twelve"],a:1,w:"12:00 in the day = noon; 12:00 at night = midnight."},
+{t:T,q:"The short hand points between 4 and 5. The long hand points at 6. What time is it?",o:["Half past four","Half past five","Four o'clock","A quarter to four"],a:0,w:"Long hand at 6 = half past; short hand after 4 = half past four."},
+{t:T,q:"The film starts at 3:15 and lasts 2 hours. What time does it end?",o:["5:15","4:15","5:45","6:15"],a:0,w:"3:15 + 2 hours = 5:15."},
+{t:T,q:"How do we say 1:58?",o:["Two minutes to two","Two minutes past one","Fifty-eight past one","One to fifty-eight"],a:0,w:"Two minutes before two = two minutes to two."},
+{t:T,q:"How do we say 9:10?",o:["Ten past nine","Ten to nine","Nine ten past","Ten nine"],a:0,w:"10 minutes after nine = ten past nine."},
+{t:T,q:"Dina studies from 4:00 p.m. to 5:30 p.m. How long does she study?",o:["1 hour","1 hour 30 minutes","2 hours","30 minutes"],a:1,w:"4:00 to 5:30 is 90 minutes."},
+{t:T,q:"Seven o'clock in the evening is the same as ___.",o:["7 a.m.","7 p.m.","17 p.m.","6 p.m."],a:1,w:"Evening hours after 12:00 noon are p.m."},
+{t:T,q:"It is 6:45 in the morning. Which is correct?",o:["A quarter to seven in the morning","A quarter past six in the morning","Half past seven in the morning","Six forty in the evening"],a:0,w:"6:45 = a quarter to seven, and it is still morning."}
+];
+
+BANK.forEach((q,n)=>q.id=n);
+
+const KEY="esmo_l2_v2";
+const load=()=>{try{return JSON.parse(localStorage.getItem(KEY))||{t:{},w:{},sessions:0}}catch(e){return {t:{},w:{},sessions:0}}};
+const save=d=>{try{localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}};
+let H=load();
+
+const PER_Q=30, N=20;
+const $=s=>document.querySelector(s);
+const acc=t=>{const r=H.t[t];return r&&r.n?r.c/r.n:0.5};
+const weight=accv=>1+3*(1-accv); // weak topic -> bigger share
+
+function pick(topic,count){
+  const pool=BANK.filter(q=>q.t===topic);
+  const out=[];
+  while(out.length<count&&pool.length){
+    const ws=pool.map(q=>(H.w[q.id]||0)?3:1);
+    let r=Math.random()*ws.reduce((a,b)=>a+b,0), k=0;
+    while(r>ws[k]){r-=ws[k];k++}
+    out.push(pool.splice(k,1)[0]);
+  }
+  return out;
+}
+
+function buildSession(){
+  const w=TOPICS.map(t=>weight(acc(t)));
+  const tot=w.reduce((a,b)=>a+b,0);
+  let counts=w.map(x=>Math.max(2,Math.round(N*x/tot)));
+  let diff=N-counts.reduce((a,b)=>a+b,0);
+  const order=TOPICS.map((t,n)=>n).sort((a,b)=>acc(TOPICS[a])-acc(TOPICS[b])); // weakest first
+  let guard=0;
+  while(diff!==0&&guard++<200){
+    if(diff>0){ const n=order.find(n=>counts[n]<BANK.filter(q=>q.t===TOPICS[n]).length)??order[0]; counts[n]++; diff--; }
+    else { const n=[...order].reverse().find(n=>counts[n]>2)??order[order.length-1]; if(counts[n]<=2) break; counts[n]--; diff++; }
+  }
+  let qs=[];
+  TOPICS.forEach((t,n)=>{qs=qs.concat(pick(t,counts[n]))});
+  // shuffle: never 3 of the same topic in a row; when several topics are
+  // allowed, take from the one with the most questions left (spreads the weak topic)
+  const rest=qs.slice(); qs=[];
+  while(rest.length){
+    const bad=qs.length>=2&&qs[qs.length-1].t===qs[qs.length-2].t?qs[qs.length-1].t:null;
+    const okN=rest.map((q,n)=>({q,n})).filter(x=>x.q.t!==bad);
+    const cand=okN.length?okN:rest.map((q,n)=>({q,n}));
+    const left=t=>cand.filter(x=>x.q.t===t).length;
+    const best=Math.max(...cand.map(x=>left(x.q.t)));
+    const top=cand.filter(x=>left(x.q.t)===best);
+    const chosen=top[Math.floor(Math.random()*top.length)];
+    qs.push(chosen.q); rest.splice(chosen.n,1);
+  }
+  return {qs,counts};
+}
+
+/* ---------- start screen ---------- */
+(function paint(){
+  const weak=TOPICS.filter(t=>acc(t)<0.75).sort((a,b)=>acc(a)-acc(b));
+  $("#focus").innerHTML=weak.length
+    ? `<div class="focus">🎯 <b>Extra practice today: ${weak.map(t=>SHORT[t]).join(", ")}</b><br>Questions from topics you get wrong most often come up more in this session.</div>`
+    : "";
+  $("#count").textContent=`${BANK.length} questions in the bank · ${N} per session · ${PER_Q} seconds each`;
+  $("#sess").textContent=H.sessions?`· ${H.sessions} session${H.sessions>1?"s":""} done`:"";
+  $("#bars").innerHTML=TOPICS.map(t=>{
+    const r=H.t[t], a=r&&r.n?r.c/r.n:0, pct=Math.round(a*100);
+    const cls=a>=.75?"":a>=.5?"low":"bad";
+    return `<div class="trow"><span>${SHORT[t]}</span>
+      <span class="tb"><i class="${cls}" style="width:${r&&r.n?pct:0}%"></i></span>
+      <span style="color:var(--soft)">${r&&r.n?pct+"%":"–"}</span></div>`;
+  }).join("");
+})();
+
+/* ---------- quiz ---------- */
+let qs=[], i=0, score=0, picked=null, timer=null, left=PER_Q, answers=[];
+
+$("#go").onclick=()=>{
+  const s=buildSession(); qs=s.qs; i=0; score=0; answers=[];
+  $("#start").classList.add("hide"); $("#history").classList.add("hide");
+  $("#done").classList.add("hide"); $("#review").innerHTML="";
+  $("#quiz").classList.remove("hide"); render();
+};
+
+function render(){
+  const q=qs[i];
+  picked=null; left=PER_Q;
+  $("#prog").textContent=`Question ${i+1} of ${qs.length} · ${SHORT[q.t]}`;
+  $("#fill").style.width=(i/qs.length*100)+"%";
+  $("#passBox").innerHTML=q.p?`<div class="passage">${q.p}</div>`:"";
+  $("#q").textContent=q.q;
+  $("#opts").innerHTML=q.o.map((o,k)=>`<li><button class="opt" data-k="${k}">${o}</button></li>`).join("");
+  $("#opts").querySelectorAll(".opt").forEach(b=>b.onclick=()=>choose(+b.dataset.k));
+  $("#why").className="why"; $("#why").textContent="";
+  $("#next").disabled=true; $("#next").textContent=i===qs.length-1?"See my score →":"Next →";
+  startClock();
+}
+function startClock(){ clearInterval(timer); tick();
+  timer=setInterval(()=>{ left--; tick(); if(left<=0) choose(-1); },1000); }
+function tick(){ $("#clock").textContent=left>0?`⏱ ${left}s`:"⏱ time!"; }
+
+function choose(k){
+  if(picked!==null) return;
+  clearInterval(timer);
+  const q=qs[i]; picked=k;
+  const ok=k===q.a; if(ok) score++;
+  answers.push({id:q.id,k,ok,t:q.t});
+  const r=H.t[q.t]||(H.t[q.t]={c:0,n:0}); r.n++; if(ok) r.c++;
+  if(!ok) H.w[q.id]=(H.w[q.id]||0)+1; else if(H.w[q.id]>1) delete H.w[q.id];
+  save(H);
+  $("#opts").querySelectorAll(".opt").forEach(b=>{
+    const kk=+b.dataset.k; b.disabled=true;
+    if(kk===q.a) b.classList.add("ok");
+    if(kk===k&&!ok) b.classList.add("no");
+  });
+  $("#why").textContent=(ok?"✅ Correct. ":"❌ Not quite. ")+q.w;
+  $("#why").className="why show";
+  $("#next").disabled=false;
+  $("#fill").style.width=((i+1)/qs.length*100)+"%";
+}
+
+$("#next").onclick=()=>{
+  if(picked===null) return;
+  i++;
+  if(i<qs.length) render(); else finish();
+};
+
+function finish(){
+  clearInterval(timer);
+  H.sessions=(H.sessions||0)+1; save(H);
+  $("#quiz").classList.add("hide"); $("#done").classList.remove("hide");
+  const pct=Math.round(score/qs.length*100);
+  const msg=pct>=80?"Excellent! 🏆":pct>=60?"Good job — keep practising! 👍":"Keep going — practise a little every day. 💪";
+  $("#result").innerHTML=`<p class="sub" style="margin:0">Your score</p>
+    <p class="score">${score}/${qs.length} <span style="font-size:18px;color:var(--soft)">(${pct}%)</span></p>
+    <p><b>${msg}</b></p>`;
+}
+
+$("#gh").onclick=()=>{
+  $("#review").innerHTML=answers.map((a,n)=>{
+    const q=BANK[a.id];
+    const mark=a.ok?'<span class="tick">✔</span>':'<span class="cross">✘</span>';
+    return `<div class="rev">${mark} <b>${n+1}. ${q.q}</b><br>
+      Your answer: ${a.k>=0?q.o[a.k]:"no answer"}<br>
+      Correct: ${q.o[q.a]}<br><span style="color:var(--soft)">${q.w}</span></div>`;
+  }).join("");
+};
+
+$("#again").onclick=()=>{
+  $("#done").classList.add("hide"); $("#start").classList.remove("hide"); $("#history").classList.remove("hide");
+  location.reload();
+};
+
+$("#reset").onclick=()=>{ if(confirm("Delete all practice history?")){ localStorage.removeItem(KEY); location.reload(); } };
+
+$("#listen").onclick=()=>{
+  const q=qs[i]; if(!("speechSynthesis" in window)) return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance((q.p?q.p+" ... ":"")+q.q+" ... "+
+    q.o.map((o,n)=>`${"ABCD"[n]}. ${o}`).join(" ... "));
+  u.lang="en-US"; u.rate=.92; speechSynthesis.speak(u);
+};
+</script>
+</body>
+</html>
