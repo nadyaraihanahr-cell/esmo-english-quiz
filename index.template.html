@@ -211,8 +211,10 @@ function buildSession(n){
   });
   let qs=picked.flat();
   // trim extra questions one by one, never splitting a passage block
+  const countOf=t=>picked.flat().filter(q=>q.t===t).length;
   while(qs.length>n){
-    const k=picked.findIndex(u=>u.length===1);
+    // keep at least 2 questions per topic so no topic disappears from a paper
+    const k=picked.findIndex(u=>u.length===1&&countOf(u[0].t)>2);
     if(k<0) break;
     picked.splice(k,1); qs=picked.flat();
   }
