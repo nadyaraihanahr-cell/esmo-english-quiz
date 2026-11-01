@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ESMO 4 — English Level 2 · Final Round Practice</title>
+<style>
+  :root{--bg:#fff8ec;--card:#fff;--ink:#1f2937;--soft:#6b7280;--brand:#0e7490;--ok:#15803d;--no:#b91c1c;--line:#e5e7eb}
+  *{box-sizing:border-box}
+  body{margin:0;font:18px/1.55 system-ui,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+  .wrap{max-width:760px;margin:0 auto;padding:18px}
+  header{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .badge{background:var(--brand);color:#fff;border-radius:999px;padding:4px 12px;font-size:14px;font-weight:700}
+  h1{font-size:clamp(20px,4vw,28px);margin:10px 0 4px}
+  .sub{color:var(--soft);font-size:15px;margin:0 0 14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,.04);margin-bottom:14px}
+  .bar{height:10px;background:var(--line);border-radius:999px;overflow:hidden;margin:6px 0 16px}
+  .bar>i{display:block;height:100%;background:var(--brand);width:0;transition:width .3s}
+  .meta{display:flex;justify-content:space-between;font-size:14px;color:var(--soft)}
+  .q{font-size:19px;font-weight:600;margin:14px 0 16px}
+  .passage{background:#ecfeff;border-left:4px solid var(--brand);border-radius:10px;padding:12px 14px;margin:12px 0;font-size:16px;max-height:230px;overflow:auto}
+  .opts{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+  .opt{width:100%;text-align:left;font:inherit;padding:14px 16px;border:2px solid var(--line);background:#fff;border-radius:12px;cursor:pointer;transition:.15s}
+  .opt:hover:not(:disabled){border-color:var(--brand);background:#f0fdff}
+  .opt:disabled{cursor:default}
+  .opt.ok{border-color:var(--ok);background:#f0fdf4}
+  .opt.no{border-color:var(--no);background:#fef2f2}
+  .row{display:flex;gap:10px;justify-content:space-between;align-items:center;margin-top:18px;flex-wrap:wrap}
+  button.primary{font:inherit;font-weight:700;background:var(--brand);color:#fff;border:0;border-radius:12px;padding:12px 22px;cursor:pointer}
+  button.ghost{font:inherit;background:transparent;border:2px solid var(--line);border-radius:12px;padding:10px 16px;cursor:pointer}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .why{margin-top:14px;font-size:16px;color:var(--soft);display:none}
+  .why.show{display:block}
+  .score{font-size:44px;font-weight:800;margin:6px 0}
+  .rev{border-top:1px solid var(--line);padding:10px 0;font-size:15px}
+  .tick{color:var(--ok)} .cross{color:var(--no)}
+  .hide{display:none!important}
+  .focus{background:#fef3c7;border:1px solid #fcd34d;border-radius:12px;padding:10px 14px;font-size:15px;margin-bottom:14px}
+  .trow{display:grid;grid-template-columns:1fr 90px 46px;gap:10px;align-items:center;font-size:14px;margin:6px 0}
+  .trow .tb{height:8px;background:var(--line);border-radius:999px;overflow:hidden}
+  .trow .tb>i{display:block;height:100%;background:var(--ok)}
+  .trow .tb>i.low{background:#f59e0b}
+  .trow .tb>i.bad{background:var(--no)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="badge">ESMO 4 · FINAL</span>
+    <span class="badge" style="background:#f59e0b">English · Level 2</span>
+  </header>
+  <h1>English Practice — Level 2 Final Round</h1>
+  <p class="sub">Grade 3 &amp; 4 · AIS Institute practice sets 1–12 · reading &amp; inference · simple present · prepositions · telling time</p>
+
+  <section id="start" class="card">
+    <div id="focus"></div>
+    <p><b id="count">Loading…</b></p>
+    <p class="sub" style="margin:0 0 16px">Tap the best answer. Use 🔊 to hear the question and the options.</p>
+    <div class="row"><button class="primary" id="go">Start practice →</button></div>
+  <p class="sub" style="margin:12px 0 0;font-size:14px">Final round sets 1–12 · <a href="prelim.html">switch to the preliminary-round bank (80 questions)</a></p>
+  </section>
+
+  <section id="history" class="card">
+    <p style="margin:0 0 10px"><b>Your progress so far</b> <span class="sub" id="sess" style="font-size:13px"></span></p>
+    <div id="bars"></div>
+    <div class="row"><button class="ghost" id="reset">Reset history</button></div>
+  </section>
+
+  <section id="quiz" class="card hide">
+    <div class="meta"><span id="prog">Question 1</span><span id="clock">⏱ 30s</span></div>
+    <div class="bar"><i id="fill"></i></div>
+    <div id="passBox"></div>
+    <p class="q" id="q"></p>
+    <ul class="opts" id="opts"></ul>
+    <p class="why" id="why"></p>
+    <div class="row">
+      <button class="ghost" id="listen">🔊 Listen</button>
+      <button class="primary" id="next" disabled>Next →</button>
+    </div>
+  </section>
+
+  <section id="done" class="card hide">
+    <div id="result"></div>
+    <div class="row">
+      <button class="ghost" id="again">New session</button>
+      <button class="primary" id="gh">Check answers</button>
+    </div>
+    <div id="review" style="margin-top:14px"></div>
+  </section>
+</div>
+
+<script>
+const R="advanced reading & inference", S="simple present", P="preposition", T="telling time";
+const TOPICS=[R,S,P,T];
+const SHORT={ [R]:"reading & inference", [S]:"simple present", [P]:"preposition", [T]:"telling time" };
+
+const BANK=[/*BANK*/];
+
+BANK.forEach((q,n)=>q.id=n);
+
+const KEY="esmo_l2_final_v1";
+const load=()=>{try{return JSON.parse(localStorage.getItem(KEY))||{t:{},w:{},sessions:0}}catch(e){return {t:{},w:{},sessions:0}}};
+const save=d=>{try{localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}};
+let H=load();
+
+const PER_Q=30, N=20;
+const $=s=>document.querySelector(s);
+const acc=t=>{const r=H.t[t];return r&&r.n?r.c/r.n:0.5};
+const poolOf=t=>BANK.filter(q=>q.t===t);
+const weight=accv=>1+3*(1-accv); // weak topic -> bigger share
+
+function pick(topic,count){
+  const pool=poolOf(topic).slice();
+  const out=[];
+  while(out.length<count&&pool.length){
+    const ws=pool.map(q=>(H.w[q.id]||0)?3:1);
+    let r=Math.random()*ws.reduce((a,b)=>a+b,0), k=0;
+    while(r>ws[k]){r-=ws[k];k++}
+    out.push(pool.splice(k,1)[0]);
+  }
+  return out;
+}
+
+function buildSession(){
+  const w=TOPICS.map(t=>weight(acc(t)));
+  const tot=w.reduce((a,b)=>a+b,0);
+  let counts=w.map(x=>Math.max(2,Math.round(N*x/tot)));
+  let diff=N-counts.reduce((a,b)=>a+b,0);
+  const order=TOPICS.map((t,n)=>n).sort((a,b)=>acc(TOPICS[a])-acc(TOPICS[b])); // weakest first
+  let guard=0;
+  while(diff!==0&&guard++<200){
+    if(diff>0){ const n=order.find(n=>counts[n]<poolOf(TOPICS[n]).length)??order[0]; counts[n]++; diff--; }
+    else { const n=[...order].reverse().find(n=>counts[n]>2)??order[order.length-1]; if(counts[n]<=2) break; counts[n]--; diff++; }
+  }
+  let qs=[];
+  TOPICS.forEach((t,n)=>{qs=qs.concat(pick(t,counts[n]))});
+  // shuffle: never 3 of the same topic in a row; when several topics are
+  // allowed, take from the one with the most questions left (spreads the weak topic)
+  const rest=qs.slice(); qs=[];
+  while(rest.length){
+    const bad=qs.length>=2&&qs[qs.length-1].t===qs[qs.length-2].t?qs[qs.length-1].t:null;
+    const okN=rest.map((q,n)=>({q,n})).filter(x=>x.q.t!==bad);
+    const cand=okN.length?okN:rest.map((q,n)=>({q,n}));
+    const left=t=>cand.filter(x=>x.q.t===t).length;
+    const best=Math.max(...cand.map(x=>left(x.q.t)));
+    const top=cand.filter(x=>left(x.q.t)===best);
+    const chosen=top[Math.floor(Math.random()*top.length)];
+    qs.push(chosen.q); rest.splice(chosen.n,1);
+  }
+  return {qs,counts};
+}
+
+/* ---------- start screen ---------- */
+(function paint(){
+  const weak=TOPICS.filter(t=>acc(t)<0.75).sort((a,b)=>acc(a)-acc(b));
+  $("#focus").innerHTML=weak.length
+    ? `<div class="focus">🎯 <b>Extra practice today: ${weak.map(t=>SHORT[t]).join(", ")}</b><br>Questions from topics you get wrong most often come up more in this session.</div>`
+    : "";
+  $("#count").textContent=`${BANK.length} questions from the final-round sets · ${N} per session · ${PER_Q} seconds each`;
+  $("#sess").textContent=H.sessions?`· ${H.sessions} session${H.sessions>1?"s":""} done`:"";
+  $("#bars").innerHTML=TOPICS.map(t=>{
+    const r=H.t[t], a=r&&r.n?r.c/r.n:0, pct=Math.round(a*100);
+    const cls=a>=.75?"":a>=.5?"low":"bad";
+    return `<div class="trow"><span>${SHORT[t]}</span>
+      <span class="tb"><i class="${cls}" style="width:${r&&r.n?pct:0}%"></i></span>
+      <span style="color:var(--soft)">${r&&r.n?pct+"%":"–"}</span></div>`;
+  }).join("");
+})();
+
+/* ---------- quiz ---------- */
+let qs=[], i=0, score=0, picked=null, timer=null, left=PER_Q, answers=[];
+
+$("#go").onclick=()=>{
+  const s=buildSession(); qs=s.qs; i=0; score=0; answers=[];
+  $("#start").classList.add("hide"); $("#history").classList.add("hide");
+  $("#done").classList.add("hide"); $("#review").innerHTML="";
+  $("#quiz").classList.remove("hide"); render();
+};
+
+function render(){
+  const q=qs[i];
+  picked=null; left=PER_Q;
+  $("#prog").textContent=`Question ${i+1} of ${qs.length} · ${SHORT[q.t]}`;
+  $("#fill").style.width=(i/qs.length*100)+"%";
+  $("#passBox").innerHTML=q.p?`<div class="passage">${q.p}</div>`:"";
+  $("#q").textContent=q.q;
+  $("#opts").innerHTML=q.o.map((o,k)=>`<li><button class="opt" data-k="${k}">${o}</button></li>`).join("");
+  $("#opts").querySelectorAll(".opt").forEach(b=>b.onclick=()=>choose(+b.dataset.k));
+  $("#why").className="why"; $("#why").textContent="";
+  $("#next").disabled=true; $("#next").textContent=i===qs.length-1?"See my score →":"Next →";
+  startClock();
+}
+function startClock(){ clearInterval(timer); tick();
+  timer=setInterval(()=>{ left--; tick(); if(left<=0) choose(-1); },1000); }
+function tick(){ $("#clock").textContent=left>0?`⏱ ${left}s`:"⏱ time!"; }
+
+function choose(k){
+  if(picked!==null) return;
+  clearInterval(timer);
+  const q=qs[i]; picked=k;
+  const ok=k===q.a; if(ok) score++;
+  answers.push({id:q.id,k,ok,t:q.t});
+  const r=H.t[q.t]||(H.t[q.t]={c:0,n:0}); r.n++; if(ok) r.c++;
+  if(!ok) H.w[q.id]=(H.w[q.id]||0)+1; else if(H.w[q.id]>1) delete H.w[q.id];
+  save(H);
+  $("#opts").querySelectorAll(".opt").forEach(b=>{
+    const kk=+b.dataset.k; b.disabled=true;
+    if(kk===q.a) b.classList.add("ok");
+    if(kk===k&&!ok) b.classList.add("no");
+  });
+  $("#why").textContent=(ok?"✅ Correct. ":"❌ Not quite. ")+q.w;
+  $("#why").className="why show";
+  $("#next").disabled=false;
+  $("#fill").style.width=((i+1)/qs.length*100)+"%";
+}
+
+$("#next").onclick=()=>{
+  if(picked===null) return;
+  i++;
+  if(i<qs.length) render(); else finish();
+};
+
+function finish(){
+  clearInterval(timer);
+  H.sessions=(H.sessions||0)+1; save(H);
+  $("#quiz").classList.add("hide"); $("#done").classList.remove("hide");
+  const pct=Math.round(score/qs.length*100);
+  const msg=pct>=80?"Excellent! 🏆":pct>=60?"Good job — keep practising! 👍":"Keep going — practise a little every day. 💪";
+  $("#result").innerHTML=`<p class="sub" style="margin:0">Your score</p>
+    <p class="score">${score}/${qs.length} <span style="font-size:18px;color:var(--soft)">(${pct}%)</span></p>
+    <p><b>${msg}</b></p>`;
+}
+
+$("#gh").onclick=()=>{
+  $("#review").innerHTML=answers.map((a,n)=>{
+    const q=BANK[a.id];
+    const mark=a.ok?'<span class="tick">✔</span>':'<span class="cross">✘</span>';
+    return `<div class="rev">${mark} <b>${n+1}. ${q.q}</b><br>
+      Your answer: ${a.k>=0?q.o[a.k]:"no answer"}<br>
+      Correct: ${q.o[q.a]}<br><span style="color:var(--soft)">${q.w}</span></div>`;
+  }).join("");
+};
+
+$("#again").onclick=()=>{ location.reload(); };
+
+$("#reset").onclick=()=>{ if(confirm("Delete all practice history?")){ localStorage.removeItem(KEY); location.reload(); } };
+
+$("#listen").onclick=()=>{
+  const q=qs[i]; if(!("speechSynthesis" in window)) return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance((q.p?q.p+" ... ":"")+q.q+" ... "+
+    q.o.map((o,n)=>`${"ABCD"[n]}. ${o}`).join(" ... "));
+  u.lang="en-US"; u.rate=.92; speechSynthesis.speak(u);
+};
+</script>
+</body>
+</html>
