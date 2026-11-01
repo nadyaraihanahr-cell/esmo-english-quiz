@@ -17,8 +17,10 @@
   .bar{height:10px;background:var(--line);border-radius:999px;overflow:hidden;margin:6px 0 16px}
   .bar>i{display:block;height:100%;background:var(--brand);width:0;transition:width .3s}
   .meta{display:flex;justify-content:space-between;font-size:14px;color:var(--soft)}
+  #clock.warn{color:var(--no);font-weight:700}
   .q{font-size:19px;font-weight:600;margin:14px 0 16px}
-  .passage{background:#ecfeff;border-left:4px solid var(--brand);border-radius:10px;padding:12px 14px;margin:12px 0;font-size:16px;max-height:230px;overflow:auto}
+  .passage{background:#ecfeff;border-left:4px solid var(--brand);border-radius:10px;padding:12px 14px;margin:12px 0;font-size:16px;max-height:235px;overflow:auto}
+  .passage .plabel{display:block;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--brand);font-weight:700;margin-bottom:6px}
   .opts{display:grid;gap:10px;margin:0;padding:0;list-style:none}
   .opt{width:100%;text-align:left;font:inherit;padding:14px 16px;border:2px solid var(--line);background:#fff;border-radius:12px;cursor:pointer;transition:.15s}
   .opt:hover:not(:disabled){border-color:var(--brand);background:#f0fdff}
@@ -31,7 +33,7 @@
   button:disabled{opacity:.5;cursor:not-allowed}
   .why{margin-top:14px;font-size:16px;color:var(--soft);display:none}
   .why.show{display:block}
-  .score{font-size:44px;font-weight:800;margin:6px 0}
+  .score{font-size:40px;font-weight:800;margin:6px 0}
   .rev{border-top:1px solid var(--line);padding:10px 0;font-size:15px}
   .tick{color:var(--ok)} .cross{color:var(--no)}
   .hide{display:none!important}
@@ -41,6 +43,17 @@
   .trow .tb>i{display:block;height:100%;background:var(--ok)}
   .trow .tb>i.low{background:#f59e0b}
   .trow .tb>i.bad{background:var(--no)}
+  .modes{display:grid;gap:12px;margin:14px 0 0}
+  .mode{border:2px solid var(--line);border-radius:14px;padding:14px 16px;cursor:pointer;background:#fff;text-align:left;font:inherit;width:100%}
+  .mode:hover{border-color:var(--brand);background:#f0fdff}
+  .mode b{display:block;font-size:17px}
+  .mode small{color:var(--soft);font-size:14px}
+  .note{font-size:13px;color:var(--soft);background:#f9fafb;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:14px 0 0}
+  .setrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .chip{font:inherit;font-size:14px;border:2px solid var(--line);background:#fff;border-radius:999px;padding:8px 14px;cursor:pointer}
+  .chip[aria-pressed="true"]{border-color:var(--brand);background:#e0f2fe;font-weight:700}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:15px;margin-top:8px}
+  .grid2 div span{display:block;color:var(--soft);font-size:13px}
 </style>
 </head>
 <body>
@@ -50,14 +63,48 @@
     <span class="badge" style="background:#f59e0b">English · Level 2</span>
   </header>
   <h1>English Practice — Level 2 Final Round</h1>
-  <p class="sub">Grade 3 &amp; 4 · AIS Institute practice sets 1–12 · reading &amp; inference · simple present · prepositions · telling time</p>
+  <p class="sub">Grade 3 &amp; 4 · AIS Institute final sets 1–12 · reading &amp; inference · simple present · prepositions · telling time</p>
 
   <section id="start" class="card">
     <div id="focus"></div>
-    <p><b id="count">Loading…</b></p>
-    <p class="sub" style="margin:0 0 16px">Tap the best answer. Use 🔊 to hear the question and the options.</p>
-    <div class="row"><button class="primary" id="go">Start practice →</button></div>
-  <p class="sub" style="margin:12px 0 0;font-size:14px">Final round sets 1–12 · <a href="prelim.html">switch to the preliminary-round bank (80 questions)</a></p>
+    <p style="margin:0 0 4px"><b id="count">Loading…</b></p>
+    <p class="sub" id="wrongline" style="margin:0"></p>
+
+    <div class="modes">
+      <button class="mode" data-mode="final">
+        <b>1 · Final Test</b>
+        <small>Full simulation, one clock for the whole paper (no per-question timer).</small>
+      </button>
+      <button class="mode" data-mode="review">
+        <b>2 · Review Incorrect</b>
+        <small id="revdesc">Only the questions you still get wrong. No timer.</small>
+      </button>
+      <button class="mode" data-mode="topic">
+        <b>3 · Topic-based Mode</b>
+        <small>One topic only, all its questions. No timer.</small>
+      </button>
+    </div>
+
+    <div id="finalOpts" class="hide">
+      <p class="sub" style="margin:14px 0 0">Paper size &amp; time — pick the one that matches your final:</p>
+      <div class="setrow" id="presets">
+        <button class="chip" data-n="40" data-min="45" aria-pressed="true">40 questions · 45 minutes <em>(juknis final ESMO)</em></button>
+        <button class="chip" data-n="30" data-min="60" aria-pressed="false">30 questions · 60 minutes <em>(ESMO 4 slot English)</em></button>
+      </div>
+      <div class="row"><button class="primary" id="goFinal">Start final test →</button></div>
+    </div>
+
+    <div id="topicOpts" class="hide">
+      <p class="sub" style="margin:14px 0 0">Topic:</p>
+      <div class="setrow" id="topicChips"></div>
+      <div class="row"><button class="primary" id="goTopic">Start topic drill →</button></div>
+    </div>
+
+    <p class="note">Official final rules (Juknis Final ESMO): 45 minutes for 40 multiple-choice questions, and the winner is decided by
+    <b>accumulated points — accuracy plus speed</b>; harder questions carry more points. ESMO 4 runs English in a 09.00–10.00 WIB slot with no extra time.
+    So the timer here counts down once for the whole paper, not per question.</p>
+
+    <p class="sub" style="margin:12px 0 0;font-size:14px">Final round sets 1–12 · <a href="prelim.html">switch to the preliminary-round bank (80 questions)</a></p>
   </section>
 
   <section id="history" class="card">
@@ -67,7 +114,7 @@
   </section>
 
   <section id="quiz" class="card hide">
-    <div class="meta"><span id="prog">Question 1</span><span id="clock">⏱ 30s</span></div>
+    <div class="meta"><span id="prog">Question 1</span><span id="clock">—</span></div>
     <div class="bar"><i id="fill"></i></div>
     <div id="passBox"></div>
     <p class="q" id="q"></p>
@@ -82,7 +129,7 @@
   <section id="done" class="card hide">
     <div id="result"></div>
     <div class="row">
-      <button class="ghost" id="again">New session</button>
+      <button class="ghost" id="again">Back to menu</button>
       <button class="primary" id="gh">Check answers</button>
     </div>
     <div id="review" style="margin-top:14px"></div>
@@ -93,70 +140,103 @@
 const R="advanced reading & inference", S="simple present", P="preposition", T="telling time";
 const TOPICS=[R,S,P,T];
 const SHORT={ [R]:"reading & inference", [S]:"simple present", [P]:"preposition", [T]:"telling time" };
+// points per question, mirroring "skor tiap soal berbeda sesuai kompleksitas"
+const POINTS={ [R]:2, [T]:1.5, [S]:1, [P]:1 };
 
-const BANK=[/*BANK*/];
+const BANK=/*BANK*/;
 
 BANK.forEach((q,n)=>q.id=n);
 
-const KEY="esmo_l2_final_v1";
+const KEY="esmo_l2_final_v2";
 const load=()=>{try{return JSON.parse(localStorage.getItem(KEY))||{t:{},w:{},sessions:0}}catch(e){return {t:{},w:{},sessions:0}}};
 const save=d=>{try{localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}};
 let H=load();
+H.w=H.w||{}; H.t=H.t||{};
 
-const PER_Q=30, N=20;
+const N_DEFAULT=40, MIN_DEFAULT=45;
 const $=s=>document.querySelector(s);
 const acc=t=>{const r=H.t[t];return r&&r.n?r.c/r.n:0.5};
 const poolOf=t=>BANK.filter(q=>q.t===t);
-const weight=accv=>1+3*(1-accv); // weak topic -> bigger share
+const weight=a=>1+3*(1-a);          // weaker topic -> bigger share
+const wrongIds=()=>Object.keys(H.w).map(Number).filter(id=>BANK[id]);
 
-function pick(topic,count){
-  const pool=poolOf(topic).slice();
-  const out=[];
-  while(out.length<count&&pool.length){
-    const ws=pool.map(q=>(H.w[q.id]||0)?3:1);
-    let r=Math.random()*ws.reduce((a,b)=>a+b,0), k=0;
-    while(r>ws[k]){r-=ws[k];k++}
-    out.push(pool.splice(k,1)[0]);
+/* ---------- question units: a passage block is one indivisible unit ---------- */
+function unitise(list){
+  const units=[], byPass={};
+  list.slice().sort((a,b)=>(a.set-b.set)||(a.no-b.no)).forEach(q=>{
+    if(!q.p){ units.push([q]); return; }
+    if(byPass[q.p]){ byPass[q.p].push(q); return; }
+    const u=[q]; byPass[q.p]=u; units.push(u);
+  });
+  return units;
+}
+const unitTopic=u=>u[0].t;
+
+function shuffleUnits(units){
+  // random order, never three units of the same topic in a row; when several are
+  // allowed, take from the topic with the most units left (spreads the weak topic)
+  const rest=units.slice(), out=[];
+  while(rest.length){
+    const bad=out.length>=2&&unitTopic(out[out.length-1])===unitTopic(out[out.length-2])?unitTopic(out[out.length-1]):null;
+    const okList=rest.filter(u=>unitTopic(u)!==bad);
+    const cand=okList.length?okList:rest;
+    const left=t=>cand.filter(u=>unitTopic(u)===t).length;
+    const best=Math.max(...cand.map(u=>left(unitTopic(u))));
+    const top=cand.filter(u=>left(unitTopic(u))===best);
+    const chosen=top[Math.floor(Math.random()*top.length)];
+    out.push(chosen); rest.splice(rest.indexOf(chosen),1);
   }
   return out;
 }
 
-function buildSession(){
-  const w=TOPICS.map(t=>weight(acc(t)));
+// base share mirrors the real final papers: reading carries the most weight,
+// then telling time, with grammar topics filling the rest
+const BASE={ [R]:0.40, [T]:0.25, [P]:0.175, [S]:0.175 };
+
+function buildSession(n){
+  const w=TOPICS.map(t=>BASE[t]*weight(acc(t)));
   const tot=w.reduce((a,b)=>a+b,0);
-  let counts=w.map(x=>Math.max(2,Math.round(N*x/tot)));
-  let diff=N-counts.reduce((a,b)=>a+b,0);
-  const order=TOPICS.map((t,n)=>n).sort((a,b)=>acc(TOPICS[a])-acc(TOPICS[b])); // weakest first
-  let guard=0;
-  while(diff!==0&&guard++<200){
-    if(diff>0){ const n=order.find(n=>counts[n]<poolOf(TOPICS[n]).length)??order[0]; counts[n]++; diff--; }
-    else { const n=[...order].reverse().find(n=>counts[n]>2)??order[order.length-1]; if(counts[n]<=2) break; counts[n]--; diff++; }
+  const want=w.map(x=>n*x/tot);                 // questions wanted per topic
+  let picked=[], used=new Set();
+  TOPICS.forEach((t,k)=>{
+    let got=0;
+    let units=shuffleUnits(unitise(poolOf(t)));
+    // reading: take the passage blocks first, they match the real final format
+    if(t===R) units=units.sort((a,b)=>b.length-a.length);
+    for(const u of units){
+      if(got>=want[k]) break;
+      if(u.some(q=>used.has(q.id))) continue;
+      picked.push(u); u.forEach(q=>used.add(q.id)); got+=u.length;
+    }
+  });
+  let qs=picked.flat();
+  // trim extra questions one by one, never splitting a passage block
+  while(qs.length>n){
+    const k=picked.findIndex(u=>u.length===1);
+    if(k<0) break;
+    picked.splice(k,1); qs=picked.flat();
   }
-  let qs=[];
-  TOPICS.forEach((t,n)=>{qs=qs.concat(pick(t,counts[n]))});
-  // shuffle: never 3 of the same topic in a row; when several topics are
-  // allowed, take from the one with the most questions left (spreads the weak topic)
-  const rest=qs.slice(); qs=[];
-  while(rest.length){
-    const bad=qs.length>=2&&qs[qs.length-1].t===qs[qs.length-2].t?qs[qs.length-1].t:null;
-    const okN=rest.map((q,n)=>({q,n})).filter(x=>x.q.t!==bad);
-    const cand=okN.length?okN:rest.map((q,n)=>({q,n}));
-    const left=t=>cand.filter(x=>x.q.t===t).length;
-    const best=Math.max(...cand.map(x=>left(x.q.t)));
-    const top=cand.filter(x=>left(x.q.t)===best);
-    const chosen=top[Math.floor(Math.random()*top.length)];
-    qs.push(chosen.q); rest.splice(chosen.n,1);
+  // pad with unused standalone questions when the paper is short
+  if(qs.length<n){
+    for(const u of shuffleUnits(unitise(BANK.filter(q=>!used.has(q.id)&&!q.p)))){
+      if(qs.length>=n) break;
+      picked.push(u); qs=picked.flat();
+    }
   }
-  return {qs,counts};
+  return shuffleUnits(picked).flat();
 }
 
 /* ---------- start screen ---------- */
+let chosenN=N_DEFAULT, chosenMin=MIN_DEFAULT, chosenTopic=R;
 (function paint(){
   const weak=TOPICS.filter(t=>acc(t)<0.75).sort((a,b)=>acc(a)-acc(b));
   $("#focus").innerHTML=weak.length
-    ? `<div class="focus">🎯 <b>Extra practice today: ${weak.map(t=>SHORT[t]).join(", ")}</b><br>Questions from topics you get wrong most often come up more in this session.</div>`
+    ? `<div class="focus">🎯 <b>Extra practice today: ${weak.map(t=>SHORT[t]).join(", ")}</b><br>Questions from topics you get wrong most often come up more in a session.</div>`
     : "";
-  $("#count").textContent=`${BANK.length} questions from the final-round sets · ${N} per session · ${PER_Q} seconds each`;
+  $("#count").textContent=`${BANK.length} final-round questions · ${TOPICS.length} topics`;
+  const nw=wrongIds().length;
+  $("#wrongline").textContent=nw?`${nw} question${nw>1?"s":""} still marked incorrect — ready for Review mode.`:"No incorrect questions saved yet.";
+  $("#revdesc").textContent=nw?`${nw} question${nw>1?"s":""} you still get wrong. No timer.`:"Nothing to review yet — do a final test first.";
   $("#sess").textContent=H.sessions?`· ${H.sessions} session${H.sessions>1?"s":""} done`:"";
   $("#bars").innerHTML=TOPICS.map(t=>{
     const r=H.t[t], a=r&&r.n?r.c/r.n:0, pct=Math.round(a*100);
@@ -165,43 +245,88 @@ function buildSession(){
       <span class="tb"><i class="${cls}" style="width:${r&&r.n?pct:0}%"></i></span>
       <span style="color:var(--soft)">${r&&r.n?pct+"%":"–"}</span></div>`;
   }).join("");
+  $("#topicChips").innerHTML=TOPICS.map((t,i)=>
+    `<button class="chip" data-topic="${i}" aria-pressed="${t===R}">${SHORT[t]} <em>(${poolOf(t).length})</em></button>`).join("");
 })();
 
-/* ---------- quiz ---------- */
-let qs=[], i=0, score=0, picked=null, timer=null, left=PER_Q, answers=[];
+let mode="final", qs=[], i=0, correct=0, answered=0, picked=null, timer=null, endsAt=0, totalMs=0, answers=[];
 
-$("#go").onclick=()=>{
-  const s=buildSession(); qs=s.qs; i=0; score=0; answers=[];
+function showModes(){
+  $("#finalOpts").classList.add("hide"); $("#topicOpts").classList.add("hide");
+}
+document.querySelectorAll(".mode").forEach(b=>b.onclick=()=>{
+  const m=b.dataset.mode;
+  showModes();
+  if(m==="final"){ $("#finalOpts").classList.remove("hide"); }
+  else if(m==="topic"){ $("#topicOpts").classList.remove("hide"); }
+  else start("review");
+});
+document.querySelectorAll("#presets .chip").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("#presets .chip").forEach(x=>x.setAttribute("aria-pressed","false"));
+  b.setAttribute("aria-pressed","true");
+  chosenN=+b.dataset.n; chosenMin=+b.dataset.min;
+});
+$("#goFinal").onclick=()=>start("final");
+$("#goTopic").onclick=()=>start("topic");
+document.addEventListener("click",e=>{
+  const c=e.target.closest("#topicChips .chip"); if(!c) return;
+  document.querySelectorAll("#topicChips .chip").forEach(x=>x.setAttribute("aria-pressed","false"));
+  c.setAttribute("aria-pressed","true");
+  chosenTopic=TOPICS[+c.dataset.topic];
+});
+
+function start(m){
+  mode=m;
+  if(m==="final") qs=buildSession(chosenN);
+  else if(m==="review"){
+    const list=BANK.filter(q=>H.w[q.id]);
+    if(!list.length){ alert("Nothing to review yet — finish a final test first."); return; }
+    qs=shuffleUnits(unitise(list)).flat();
+  } else {
+    qs=shuffleUnits(unitise(poolOf(chosenTopic))).flat();
+  }
+  i=0; correct=0; answered=0; answers=[]; picked=null;
   $("#start").classList.add("hide"); $("#history").classList.add("hide");
   $("#done").classList.add("hide"); $("#review").innerHTML="";
-  $("#quiz").classList.remove("hide"); render();
-};
+  $("#quiz").classList.remove("hide");
+  clearInterval(timer);
+  if(m==="final"){ totalMs=chosenMin*60000; endsAt=Date.now()+totalMs; startClock(); }
+  else { totalMs=0; $("#clock").textContent="no timer"; $("#clock").classList.remove("warn"); }
+  render();
+}
+
+function startClock(){
+  clearInterval(timer);
+  const tick=()=>{
+    const left=endsAt-Date.now();
+    if(left<=0){ $("#clock").textContent="⏱ time!"; $("#clock").classList.add("warn"); clearInterval(timer); finish(); return; }
+    const s=Math.ceil(left/1000), mm=Math.floor(s/60), ss=s%60;
+    $("#clock").textContent=`⏱ ${mm}:${String(ss).padStart(2,"0")}`;
+    $("#clock").classList.toggle("warn",left<300000);
+  };
+  tick(); timer=setInterval(tick,500);
+}
 
 function render(){
   const q=qs[i];
-  picked=null; left=PER_Q;
+  picked=null;
   $("#prog").textContent=`Question ${i+1} of ${qs.length} · ${SHORT[q.t]}`;
   $("#fill").style.width=(i/qs.length*100)+"%";
-  $("#passBox").innerHTML=q.p?`<div class="passage">${q.p}</div>`:"";
+  $("#passBox").innerHTML=q.p?`<div class="passage"><span class="plabel">Read the passage — questions ${qs.filter(x=>x.p===q.p).map(x=>x.no).join(", ")}</span>${q.p}</div>`:"";
   $("#q").textContent=q.q;
   $("#opts").innerHTML=q.o.map((o,k)=>`<li><button class="opt" data-k="${k}">${o}</button></li>`).join("");
   $("#opts").querySelectorAll(".opt").forEach(b=>b.onclick=()=>choose(+b.dataset.k));
   $("#why").className="why"; $("#why").textContent="";
   $("#next").disabled=true; $("#next").textContent=i===qs.length-1?"See my score →":"Next →";
-  startClock();
 }
-function startClock(){ clearInterval(timer); tick();
-  timer=setInterval(()=>{ left--; tick(); if(left<=0) choose(-1); },1000); }
-function tick(){ $("#clock").textContent=left>0?`⏱ ${left}s`:"⏱ time!"; }
 
 function choose(k){
   if(picked!==null) return;
-  clearInterval(timer);
-  const q=qs[i]; picked=k;
-  const ok=k===q.a; if(ok) score++;
+  const q=qs[i]; picked=k; answered++;
+  const ok=k===q.a; if(ok) correct++;
   answers.push({id:q.id,k,ok,t:q.t});
   const r=H.t[q.t]||(H.t[q.t]={c:0,n:0}); r.n++; if(ok) r.c++;
-  if(!ok) H.w[q.id]=(H.w[q.id]||0)+1; else if(H.w[q.id]>1) delete H.w[q.id];
+  if(!ok) H.w[q.id]=(H.w[q.id]||0)+1; else delete H.w[q.id];
   save(H);
   $("#opts").querySelectorAll(".opt").forEach(b=>{
     const kk=+b.dataset.k; b.disabled=true;
@@ -224,11 +349,29 @@ function finish(){
   clearInterval(timer);
   H.sessions=(H.sessions||0)+1; save(H);
   $("#quiz").classList.add("hide"); $("#done").classList.remove("hide");
-  const pct=Math.round(score/qs.length*100);
+  const pct=Math.round(correct/qs.length*100);
   const msg=pct>=80?"Excellent! 🏆":pct>=60?"Good job — keep practising! 👍":"Keep going — practise a little every day. 💪";
+  let extra="";
+  if(mode==="final"){
+    // accumulated score: accuracy points (weighted by difficulty) + speed points
+    const pts=answers.reduce((a,x)=>a+(x.ok?POINTS[x.t]:0),0);
+    const maxPts=answers.reduce((a,x)=>a+POINTS[x.t],0);
+    const usedMs=totalMs-(endsAt-Date.now());
+    const usedMin=Math.max(0,Math.min(chosenMin,Math.round(usedMs/60000)));
+    const speed=Math.round(pts*0.25*(1-usedMs/totalMs)*10)/10;
+    extra=`<div class="grid2">
+      <div><span>Accuracy points</span><b>${Math.round(pts*10)/10} / ${maxPts}</b></div>
+      <div><span>Speed bonus</span><b>+${speed}</b></div>
+      <div><span>Total score</span><b>${Math.round((pts+speed)*10)/10}</b></div>
+      <div><span>Time used</span><b>${usedMin} of ${chosenMin} min</b></div>
+    </div>
+    <p class="sub" style="margin:10px 0 0">Scored the way the final is scored: accuracy × difficulty, plus a bonus for finishing early. Unanswered questions score nothing — there is no penalty.</p>`;
+  } else if(mode==="review"){
+    extra=`<p class="sub" style="margin:10px 0 0">Questions you answered correctly are removed from the review list; the rest stay for next time.</p>`;
+  }
   $("#result").innerHTML=`<p class="sub" style="margin:0">Your score</p>
-    <p class="score">${score}/${qs.length} <span style="font-size:18px;color:var(--soft)">(${pct}%)</span></p>
-    <p><b>${msg}</b></p>`;
+    <p class="score">${correct}/${qs.length} <span style="font-size:18px;color:var(--soft)">(${pct}%)</span></p>
+    <p><b>${msg}</b></p>${extra}`;
 }
 
 $("#gh").onclick=()=>{
@@ -242,7 +385,6 @@ $("#gh").onclick=()=>{
 };
 
 $("#again").onclick=()=>{ location.reload(); };
-
 $("#reset").onclick=()=>{ if(confirm("Delete all practice history?")){ localStorage.removeItem(KEY); location.reload(); } };
 
 $("#listen").onclick=()=>{
@@ -252,6 +394,11 @@ $("#listen").onclick=()=>{
     q.o.map((o,n)=>`${"ABCD"[n]}. ${o}`).join(" ... "));
   u.lang="en-US"; u.rate=.92; speechSynthesis.speak(u);
 };
+
+// leaving the page during a timed test asks first
+window.addEventListener("beforeunload",e=>{
+  if(mode==="final"&&!$("#quiz").classList.contains("hide")){ e.preventDefault(); e.returnValue=""; }
+});
 </script>
 </body>
 </html>
